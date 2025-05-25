@@ -27,78 +27,119 @@ The Chain of Responsibility pattern is a behavioral design pattern that allows a
 
 ## Class Diagram
 
-```mermaid
-classDiagram
-    class AbstractLogger {
-        <<abstract>>
-        #LogLevel level
-        #AbstractLogger nextLogger
-        +setNextLogger(AbstractLogger)
-        +logMessage(LogLevel, String)
-        #shouldLog(LogLevel)
-        #write(String)*
-    }
+```plantuml
+@startuml
 
-    class LogLevel {
-        <<enumeration>>
-        INFO
-        DEBUG
-        ERROR
-    }
+' Style definitions
+!define RECTANGLE class
+!define INTERFACE interface
+!define ENUM enum
 
-    class InfoLogger {
-        +InfoLogger()
-        #write(String)
-    }
+skinparam class {
+    BackgroundColor<<abstract>> LightBlue
+    BackgroundColor<<interface>> LightGreen
+    BackgroundColor<<enum>> LightYellow
+    BackgroundColor<<concrete>> LightCoral
+    BorderColor Black
+    ArrowColor Black
+    FontColor Black
+    FontSize 14
+}
 
-    class DebugLogger {
-        +DebugLogger()
-        #write(String)
-    }
+skinparam component {
+    BackgroundColor White
+    BorderColor Black
+    ArrowColor Black
+}
 
-    class ErrorLogger {
-        +ErrorLogger()
-        #write(String)
-    }
+' Abstract Logger
+RECTANGLE "AbstractLogger" as AbstractLogger <<abstract>> {
+    # LogLevel level
+    # AbstractLogger nextLogger
+    + setNextLogger(AbstractLogger)
+    + logMessage(LogLevel, String)
+    # shouldLog(LogLevel)
+    # {abstract} write(String)
+}
 
-    class LoggingService {
-        <<interface>>
-        +logMessage(LogLevel, String)
-        +logInfo(String)
-        +logDebug(String)
-        +logError(String)
-    }
+' Log Level Enum
+ENUM "LogLevel" as LogLevel <<enum>> {
+    INFO
+    DEBUG
+    ERROR
+}
 
-    class LoggingServiceImpl {
-        -AbstractLogger loggerChain
-        +logMessage(LogLevel, String)
-        +logInfo(String)
-        +logDebug(String)
-        +logError(String)
-    }
+' Concrete Loggers
+RECTANGLE "InfoLogger" as InfoLogger <<concrete>> {
+    + InfoLogger()
+    # write(String)
+}
 
-    class LoggingController {
-        -LoggingService loggingService
-        +logMessage(LogLevel, LogMessageRequest)
-        +logInfo(LogMessageRequest)
-        +logDebug(LogMessageRequest)
-        +logError(LogMessageRequest)
-    }
+RECTANGLE "DebugLogger" as DebugLogger <<concrete>> {
+    + DebugLogger()
+    # write(String)
+}
 
-    class LogMessageRequest {
-        -String message
-        +getMessage()
-        +setMessage(String)
-    }
+RECTANGLE "ErrorLogger" as ErrorLogger <<concrete>> {
+    + ErrorLogger()
+    # write(String)
+}
 
-    AbstractLogger <|-- InfoLogger
-    AbstractLogger <|-- DebugLogger
-    AbstractLogger <|-- ErrorLogger
-    AbstractLogger --> LogLevel
-    LoggingServiceImpl ..|> LoggingService
-    LoggingServiceImpl --> AbstractLogger
-    LoggingController --> LoggingService
-    LoggingController --> LogMessageRequest
+' Service Layer
+INTERFACE "LoggingService" as LoggingService <<interface>> {
+    + logMessage(LogLevel, String)
+    + logInfo(String)
+    + logDebug(String)
+    + logError(String)
+}
+
+RECTANGLE "LoggingServiceImpl" as LoggingServiceImpl <<concrete>> {
+    - AbstractLogger loggerChain
+    + logMessage(LogLevel, String)
+    + logInfo(String)
+    + logDebug(String)
+    + logError(String)
+}
+
+' Controller Layer
+RECTANGLE "LoggingController" as LoggingController <<concrete>> {
+    - LoggingService loggingService
+    + logMessage(LogLevel, LogMessageRequest)
+    + logInfo(LogMessageRequest)
+    + logDebug(LogMessageRequest)
+    + logError(LogMessageRequest)
+}
+
+' Model Layer
+RECTANGLE "LogMessageRequest" as LogMessageRequest <<concrete>> {
+    - String message
+    + getMessage()
+    + setMessage(String)
+}
+
+' Relationships
+AbstractLogger <|-- InfoLogger : extends
+AbstractLogger <|-- DebugLogger : extends
+AbstractLogger <|-- ErrorLogger : extends
+AbstractLogger --> LogLevel : uses
+LoggingServiceImpl ..|> LoggingService : implements
+LoggingServiceImpl --> AbstractLogger : uses
+LoggingController --> LoggingService : uses
+LoggingController --> LogMessageRequest : uses
+
+' Layout hints
+together {
+    class InfoLogger
+    class DebugLogger
+    class ErrorLogger
+}
+
+together {
+    class LoggingService
+    class LoggingServiceImpl
+}
+
+@enduml
 ```
 
 ## Implementation Details
